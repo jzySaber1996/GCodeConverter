@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>printInfo</comment>
+<entry key="firstBedTemp">100</entry>
+<entry key="maxFanSpeed">100</entry>
+<entry key="filamentDiameter">1.75</entry>
+<entry key="externalShellSpeed">20</entry>
+<entry key="bottomLayers">3</entry>
+<entry key="topInfillWidth">0.56</entry>
+<entry key="fileType">MLSingle</entry>
+<entry key="lineGap">0.8</entry>
+<entry key="retractLength">3</entry>
+<entry key="threshold">0.5</entry>
+<entry key="filepath">D:\3DModelPrinting\data\fir_sub.mat</entry>
+<entry key="solidInfillSpeed">60</entry>
+<entry key="firstHeight">0.4</entry>
+<entry key="endGcode">M104 S0 ; turn off temperature
+G28 X0  ; home X axis
+M84     ; disable motors
+</entry>
+<entry key="firstExtruderTemp">205</entry>
+<entry key="ifLayer">否</entry>
+<entry key="firstLayerSpeed">30</entry>
+<entry key="minFanSpeed">35</entry>
+<entry key="startGcode">G28 ; home all axes
+G1 Z5 F5000 ; lift nozzle
+</entry>
+<entry key="accuracy">0.5</entry>
+<entry key="height">0.4</entry>
+<entry key="retractSpeed">40</entry>
+<entry key="shellWidth">0.56</entry>
+<entry key="travelSpeed">150</entry>
+<entry key="shellSpeed">30</entry>
+<entry key="topLayers">3</entry>
+<entry key="bedTemp">90</entry>
+<entry key="solidFillWidth">0.56</entry>
+<entry key="extruderTemp">200</entry>
+<entry key="infillWidth">0.5</entry>
+<entry key="parameterName">subVolume</entry>
+<entry key="infillSpeed">80</entry>
+<entry key="externalShellWidth">0.44</entry>
+</properties>
