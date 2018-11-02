@@ -12,6 +12,10 @@ public class GCodeGenerator {
     private static ArrayList<ArrayList<Point>> pointPrintList = new ArrayList<>();
 
     private static Double travelSpeedValue;
+    private static Double retractSpeed;
+    private static Double retractLengthValue;
+    private static Double firstLayerSpeed;
+    private static Integer shellLayers;
 
     public static void generator() {
         reconstructFile();
@@ -147,11 +151,11 @@ public class GCodeGenerator {
             properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
             String travelSpeed = properties.getProperty("travelSpeed");
             String firstHeight = properties.getProperty("firstHeight");
-            double travelSpeedValue = Double.parseDouble(travelSpeed) * 60;
+            travelSpeedValue = Double.parseDouble(travelSpeed) * 60;
             double height = Double.parseDouble(firstHeight);
             gcode += "G1 Z" + firstHeight + " F" + String.valueOf(travelSpeedValue) + "\n";
             String retractLength = properties.getProperty("retractLength");
-            Double retractLengthValue = Double.parseDouble(retractLength);
+            retractLengthValue = Double.parseDouble(retractLength);
             gcode += "G1 E-" + retractLength + " F" + retractLength + "\n";
             gcode += "G92 E0\n";
             lengthUsed = -1 * retractLengthValue;
@@ -169,11 +173,34 @@ public class GCodeGenerator {
         String gcode = code;
         layerHeight = zPrintList.get(fileLine);
         ArrayList<Point> pointList = pointPrintList.get(fileLine);
-
+        Properties properties = new Properties();
+        try {
+            properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
+            retractSpeed = Double.parseDouble(properties.getProperty("retractSpeed")) * 60;
+            gcode += "G1 X" + String.valueOf(pointList.get(0).getX())
+                    + " Y" + String.valueOf(pointList.get(0).getY())
+                    + " F" + String.valueOf(travelSpeedValue)
+                    + "\n";
+            gcode += "G1 E" + String.valueOf(retractLengthValue)
+                    + " F" + retractSpeed + "\n";
+            shellLayers = Integer.parseInt(properties.getProperty("shellLayers"));
+            firstLayerSpeed = Double.parseDouble(properties.getProperty("firstLayerSpeed")) * 60;
+            for (int i = 0; i < shellLayers; i++){
+                gcode = generateEachShell(gcode);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         fileLine++;
         return gcode;
     }
 
+    private static String generateEachShell(String code){
+        String gcode = code;
+        gcode += "G1 F" + String.valueOf(firstLayerSpeed) + "\n";
+        
+        return gcode;
+    }
     private static String generateBottomSolidOther(String code) {
         String gcode = code;
 
