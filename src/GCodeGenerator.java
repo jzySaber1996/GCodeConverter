@@ -198,7 +198,7 @@ public class GCodeGenerator {
     private static String generateEachShell(String code){
         String gcode = code;
         gcode += "G1 F" + String.valueOf(firstLayerSpeed) + "\n";
-        
+
         return gcode;
     }
     private static String generateBottomSolidOther(String code) {
