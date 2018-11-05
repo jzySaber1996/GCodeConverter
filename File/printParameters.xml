@@ -14,7 +14,7 @@
     <entry key="threshold">0.5</entry>
     <entry key="filepath">D:\3DModelPrinting\data\fir_sub.mat</entry>
     <entry key="solidInfillSpeed">60</entry>
-    <entry key="firstHeight">0.4</entry>
+    <entry key="firstHeight">0.2</entry>
     <entry key="endGcode">M104 S0 ; turn off temperature
         G28 X0  ; home X axis
         M84     ; disable motors
@@ -22,12 +22,13 @@
     <entry key="firstExtruderTemp">205</entry>
     <entry key="ifLayer">否</entry>
     <entry key="firstLayerSpeed">30</entry>
+    <entry key="scaling">2</entry>
     <entry key="minFanSpeed">35</entry>
     <entry key="startGcode">G28 ; home all axes
         G1 Z5 F5000 ; lift nozzle
     </entry>
     <entry key="accuracy">0.5</entry>
-    <entry key="height">0.4</entry>
+    <entry key="height">0.2</entry>
     <entry key="retractSpeed">40</entry>
     <entry key="travelSpeed">150</entry>
     <entry key="shellSpeed">30</entry>
