@@ -169,7 +169,7 @@ public class GCodeGenerator {
         String gcode = code;
         layerHeight = zPrintList.get(fileLine);
         ArrayList<Point> pointList = pointPrintList.get(fileLine);
-
+        
         fileLine++;
         return gcode;
     }
