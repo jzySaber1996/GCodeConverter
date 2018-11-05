@@ -167,12 +167,13 @@ public class GCodeGenerator {
             String firstHeight = properties.getProperty("firstHeight");
             travelSpeedValue = Double.parseDouble(travelSpeed) * 60;
             double height = Double.parseDouble(firstHeight);
-            gcode += "G1 Z" + firstHeight + " F" + String.valueOf(travelSpeedValue) + "\n";
+            gcode += "G1 Z" + formatNumber(Double.parseDouble(firstHeight), 3)
+                    + " F" + formatNumber(travelSpeedValue, 3) + "\n";
             String retractLength = properties.getProperty("retractLength");
             retractLengthValue = Double.parseDouble(retractLength);
             retractSpeed = Double.parseDouble(properties.getProperty("retractSpeed")) * 60;
-            gcode += "G1 E-" + String.valueOf(retractLength)
-                    + " F" + String.valueOf(retractSpeed) + "\n";
+            gcode += "G1 E-" + formatNumber(retractLengthValue, 5)
+                    + " F" + formatNumber(retractSpeed, 5) + "\n";
             gcode += "G92 E0\n";
             lengthUsed = -1 * retractLengthValue;
             layerHeight = 0.0;
@@ -200,12 +201,13 @@ public class GCodeGenerator {
             pointStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
                     pointList.get(1), shellLayers, extruderWidth);
             previousPrintPoint = pointStart;
-            gcode += "G1 X" + String.valueOf(pointStart.getX())
-                    + " Y" + String.valueOf(pointStart.getY())
-                    + " F" + String.valueOf(travelSpeedValue)
+            gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
+                    + " Y" + formatNumber(pointStart.getY(), 3)
+                    + " F" + formatNumber(travelSpeedValue, 3)
                     + "\n";
-            gcode += "G1 E" + String.valueOf(retractLengthValue)
-                    + " F" + retractSpeed + "\n";
+            gcode += "G1 E" + formatNumber(retractLengthValue, 5)
+                    + " F" + formatNumber(retractSpeed, 5)
+                    + "\n";
             lengthUsed = retractLengthValue;
             firstLayerSpeed = Double.parseDouble(properties.getProperty("firstLayerSpeed")) * 60;
             for (int i = 0; i < shellLayers; i++) {
@@ -230,7 +232,7 @@ public class GCodeGenerator {
 
     private static String generateEachShell(ArrayList<Point> pointList, String code, Integer index) {
         String gcode = code;
-        gcode += "G1 F" + String.valueOf(firstLayerSpeed) + "\n";
+        gcode += "G1 F" + formatNumber(firstLayerSpeed, 0) + "\n";
         Integer layer = shellLayers - index;
         Point printPoint;
         Double extrusion;
@@ -244,9 +246,9 @@ public class GCodeGenerator {
             }
             extrusion = extrusionData(previousPrintPoint, printPoint);
             lengthUsed += extrusion;
-            gcode += "G1 X" + String.valueOf(printPoint.getX())
-                    + " Y" + String.valueOf(printPoint.getY())
-                    + " E" + String.valueOf(lengthUsed)
+            gcode += "G1 X" + formatNumber(printPoint.getX(), 3)
+                    + " Y" + formatNumber(printPoint.getY(), 3)
+                    + " E" + formatNumber(lengthUsed, 5)
                     + "\n";
             previousPrintPoint = printPoint;
         }
@@ -254,20 +256,25 @@ public class GCodeGenerator {
                 pointList.get(1), layer, extruderWidth);
         extrusion = extrusionData(previousPrintPoint, printPoint);
         lengthUsed += extrusion;
-        gcode += "G1 X" + String.valueOf(printPoint.getX())
-                + " Y" + String.valueOf(printPoint.getY())
-                + " E" + String.valueOf(lengthUsed)
+        gcode += "G1 X" + formatNumber(printPoint.getX(), 3)
+                + " Y" + formatNumber(printPoint.getY(), 3)
+                + " E" + formatNumber(lengthUsed, 5)
                 + "\n";
         Point pointNewStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
                 pointList.get(1), layer - 1, extruderWidth);
         previousPrintPoint = pointNewStart;
-        gcode += "G1 X" + String.valueOf(pointNewStart.getX())
-                + " Y" + String.valueOf(pointNewStart.getY())
-                + " F" + String.valueOf(travelSpeedValue)
+        gcode += "G1 X" + formatNumber(pointNewStart.getX(), 3)
+                + " Y" + formatNumber(pointNewStart.getY(), 3)
+                + " F" + formatNumber(travelSpeedValue, 3)
                 + "\n";
         return gcode;
     }
 
+    private static String formatNumber(Double number, Integer prefix) {
+        String numberResult;
+        numberResult = String.format("%." + String.valueOf(prefix) + "f", number);
+        return numberResult;
+    }
     private static Double extrusionData(Point previous, Point point) {
         Double length = Math.sqrt(Math.pow(point.getX() - previous.getX(), 2) +
                 Math.pow(point.getY() - previous.getY(), 2));
@@ -275,7 +282,6 @@ public class GCodeGenerator {
         Double area = (Math.PI * Math.pow(filamentDiameter, 2)) / 4;
         return volume / area;
     }
-
 
     //REMAIN Modification!
     private static Point layerAlgorithm(Point pointPrevious, Point point, Point pointLatter,
