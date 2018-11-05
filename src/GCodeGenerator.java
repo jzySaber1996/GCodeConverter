@@ -5,6 +5,7 @@ import java.util.Properties;
 public class GCodeGenerator {
     private static Double lengthUsed;
     private static Double layerHeight;
+    private static Integer scaling;
     private static Double filamentDiameter;
     private static Integer fileLine;
     private static ArrayList<String> zStrings = new ArrayList<>();
@@ -37,13 +38,13 @@ public class GCodeGenerator {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Properties properties = new Properties();
-        try {
-            properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
-            properties.getProperty("");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        Properties properties = new Properties();
+//        try {
+//            properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
+//            properties.getProperty("");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private static void reconstructFile() {
@@ -60,6 +61,10 @@ public class GCodeGenerator {
             while (line != null) {
                 String[] data = line.split(" ");
                 if (data[0].equals("")) break;
+                if (count == 0 && Double.parseDouble(data[0]) != 0) {
+                    readerZ.close();
+                    return;
+                }
                 zHeight = Double.parseDouble(data[0]);
                 if (count == 0) {
                     zHeight += firstHeight;
@@ -90,6 +95,9 @@ public class GCodeGenerator {
 
     private static void storeData() {
         try {
+            Properties properties = new Properties();
+            properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
+            scaling = Integer.parseInt(properties.getProperty("scaling"));
             FileInputStream fileX = new FileInputStream("File/xListFile.txt");
             FileInputStream fileY = new FileInputStream("File/yListFile.txt");
             FileInputStream fileZ = new FileInputStream("File/zListFile.txt");
@@ -101,13 +109,13 @@ public class GCodeGenerator {
             String lineZ = readerZ.readLine();
             while ((lineX != null) && (lineY != null) && (lineZ != null)) {
                 Double zData = Double.parseDouble(lineZ.split(" ")[0]);
-                zPrintList.add(zData);
+                zPrintList.add(zData * scaling);
                 String[] xPoints = lineX.split(" ");
                 String[] yPoints = lineY.split(" ");
                 ArrayList<Point> singleLayerPoints = new ArrayList<>();
                 for (int i = 0; i < xPoints.length; i++) {
-                    Point point = new Point(Double.parseDouble(xPoints[i]),
-                            Double.parseDouble(yPoints[i]));
+                    Point point = new Point(Double.parseDouble(xPoints[i]) * scaling,
+                            Double.parseDouble(yPoints[i]) * scaling);
 //                    point.setX(Double.parseDouble(xPoints[i]));
 //                    point.setY(Double.parseDouble(yPoints[i]));
                     singleLayerPoints.add(point);
@@ -275,6 +283,7 @@ public class GCodeGenerator {
         numberResult = String.format("%." + String.valueOf(prefix) + "f", number);
         return numberResult;
     }
+
     private static Double extrusionData(Point previous, Point point) {
         Double length = Math.sqrt(Math.pow(point.getX() - previous.getX(), 2) +
                 Math.pow(point.getY() - previous.getY(), 2));

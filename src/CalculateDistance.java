@@ -20,7 +20,7 @@ public class CalculateDistance {
         Double e = 0.0;
         Double length = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
         Double baseArea = Math.PI * Math.pow(1.75, 2) / 4;
-        e = length * 0.48 * 0.15 / baseArea;
+        e = length * 0.4 * 0.4 / baseArea;
         return e;
     }
 }
