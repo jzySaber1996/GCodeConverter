@@ -415,41 +415,41 @@ public class GCodeGenerator {
         }
         for (Double m = startM; m <= endM; m += extruderWidth) {
             Double value1, value2;
+            Double k = Math.tan(infillLineAngle);
             for (int i = 0; i < infillBoundPointList.size() - 1; i++) {
-                Double k = Math.tan(infillLineAngle);
-                value1 = Math.tan(infillLineAngle) * infillBoundPointList.get(i).getX()
+                value1 = k * infillBoundPointList.get(i).getX()
                         - infillBoundPointList.get(i).getY() + m;
-                value2 = Math.tan(infillLineAngle) * infillBoundPointList.get(i + 1).getX()
+                value2 = k * infillBoundPointList.get(i + 1).getX()
                         - infillBoundPointList.get(i + 1).getY() + m;
                 if (value1 * value2 < 0) {
                     if (pointOrder == 0) {
-                        pointStart = calculateCrossPoint(Math.tan(infillLineAngle), m,
+                        pointStart = calculateCrossPoint(k, m,
                                 infillBoundPointList.get(i), infillBoundPointList.get(i + 1));
                         pointOrder++;
                     } else {
-                        pointEnd = calculateCrossPoint(Math.tan(infillLineAngle), m,
+                        pointEnd = calculateCrossPoint(k, m,
                                 infillBoundPointList.get(i), infillBoundPointList.get(i + 1));
-                        pointOrder++;
+                        pointOrder = 0;
                     }
                     Line line = new Line(pointStart, pointEnd);
                     infillLineList.add(line);
                 }
             }
-            value1 = Math.tan(infillLineAngle) * infillBoundPointList.get(infillBoundPointList.size() - 1).getX()
+            value1 = k * infillBoundPointList.get(infillBoundPointList.size() - 1).getX()
                     - infillBoundPointList.get(infillBoundPointList.size() - 1).getY() + m;
-            value2 = Math.tan(infillLineAngle) * infillBoundPointList.get(0).getX()
+            value2 = k * infillBoundPointList.get(0).getX()
                     - infillBoundPointList.get(0).getY() + m;
             if (value1 * value2 < 0) {
                 if (pointOrder == 0) {
-                    pointStart = calculateCrossPoint(Math.tan(infillLineAngle), m,
+                    pointStart = calculateCrossPoint(k, m,
                             infillBoundPointList.get(infillBoundPointList.size() - 1),
                             infillBoundPointList.get(0));
                     pointOrder++;
                 } else {
-                    pointEnd = calculateCrossPoint(Math.tan(infillLineAngle), m,
+                    pointEnd = calculateCrossPoint(k, m,
                             infillBoundPointList.get(infillBoundPointList.size() - 1),
                             infillBoundPointList.get(0));
-                    pointOrder++;
+                    pointOrder = 0;
                 }
                 Line line = new Line(pointStart, pointEnd);
                 infillLineList.add(line);
@@ -458,14 +458,12 @@ public class GCodeGenerator {
     }
 
     private static Point calculateCrossPoint(Double k, Double m, Point point1, Point point2) {
-        Double w1_1 = k;
         Double w1_2 = -1.0;
         Double w2_1 = point2.getY() - point1.getY();
         Double w2_2 = point1.getX() - point2.getX();
-        Double C_1 = m;
         Double C_2 = point2.getX() * point1.getY() - point1.getX() * point2.getY();
-        Double pointX = (w1_2 * C_2 - w2_2 * C_1) / (w2_2 * w1_1 - w2_1 * w1_2);
-        Double pointY = (w1_1 * C_2 - w2_1 * C_1) / (w1_2 * w2_1 - w2_2 * w1_1);
+        Double pointX = (w1_2 * C_2 - w2_2 * m) / (w2_2 * k - w2_1 * w1_2);
+        Double pointY = (k * C_2 - w2_1 * m) / (w1_2 * w2_1 - w2_2 * k);
         return new Point(pointX, pointY);
     }
 
