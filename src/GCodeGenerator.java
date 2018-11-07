@@ -374,7 +374,7 @@ public class GCodeGenerator {
                 + " E" + formatNumber(lengthUsed, 5)
                 + "\n";
         previousPrintPoint = pointEnd;
-        for (int i = 0; i < infillLineList.size(); i++) {
+        for (int i = 1; i < infillLineList.size(); i++) {
             Line line = infillLineList.get(i);
             if (i % 2 == 1) {
                 pointStart = line.getEndPoint();
