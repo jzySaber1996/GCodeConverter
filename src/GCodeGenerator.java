@@ -350,12 +350,16 @@ public class GCodeGenerator {
         printPoint = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
                 pointList.get(1), virtualLayer, extruderWidth);
         infillBoundPointList.add(printPoint);
-        infillLineAngle = Math.PI/4;
+        infillLineAngle = (3 * Math.PI) / 4;
         constructInfillLines();
-        for (int i=0; i<infillLineList.size(); i++){
-            if (infillLineList.get(i).getStartPoint() == null ||
-                    infillLineList.get(i).getEndPoint() == null){
-                infillLineList.remove(i);
+        for (int i = 0; i < infillLineList.size(); i++) {
+            if (infillLineList.get(i).getStartPoint().getX() <
+                    infillLineList.get(i).getEndPoint().getX()) {
+                Point pointStart = infillLineList.get(i).getStartPoint();
+                Point pointEnd = infillLineList.get(i).getEndPoint();
+                Point pointStartNew = new Point(pointEnd.getX(), pointEnd.getY());
+                Point pointEndNew = new Point(pointStart.getX(), pointStart.getY());
+                infillLineList.set(i, new Line(pointStartNew, pointEndNew));
             }
         }
         Line lineStart = infillLineList.get(0);
@@ -379,8 +383,7 @@ public class GCodeGenerator {
             if (i % 2 == 1) {
                 pointStart = line.getEndPoint();
                 pointEnd = line.getStartPoint();
-            }
-            else {
+            } else {
                 pointStart = line.getStartPoint();
                 pointEnd = line.getEndPoint();
             }
@@ -406,14 +409,14 @@ public class GCodeGenerator {
         Integer pointOrder = 0;
         Point pointStart = null, pointEnd = null;
         Double startM, endM;
-        if (infillLineAngle < Math.PI/2) {
+        if (infillLineAngle < Math.PI / 2) {
             startM = -1 * Math.tan(infillLineAngle) * maxDim;
             endM = maxDim;
         } else {
             startM = 0.0;
             endM = maxDim - Math.tan(infillLineAngle) * maxDim;
         }
-        for (Double m = startM; m <= endM; m += extruderWidth) {
+        for (Double m = startM; m <= endM; m += extruderWidth * scaling) {
             Double value1, value2;
             Double k = Math.tan(infillLineAngle);
             for (int i = 0; i < infillBoundPointList.size() - 1; i++) {
@@ -429,10 +432,16 @@ public class GCodeGenerator {
                     } else {
                         pointEnd = calculateCrossPoint(k, m,
                                 infillBoundPointList.get(i), infillBoundPointList.get(i + 1));
-                        pointOrder = 0;
+                        if (Math.abs(pointEnd.getX() - pointStart.getX()) > 1) {
+                            pointOrder++;
+                        }
                     }
-                    Line line = new Line(pointStart, pointEnd);
-                    infillLineList.add(line);
+                    if (pointOrder == 2) {
+                        Line line = new Line(pointStart, pointEnd);
+                        infillLineList.add(line);
+                        pointOrder = 0;
+                        break;
+                    }
                 }
             }
             value1 = k * infillBoundPointList.get(infillBoundPointList.size() - 1).getX()
@@ -449,10 +458,15 @@ public class GCodeGenerator {
                     pointEnd = calculateCrossPoint(k, m,
                             infillBoundPointList.get(infillBoundPointList.size() - 1),
                             infillBoundPointList.get(0));
-                    pointOrder = 0;
+                    pointOrder++;
                 }
-                Line line = new Line(pointStart, pointEnd);
-                infillLineList.add(line);
+                if (pointOrder == 2) {
+                    Line line = new Line(pointStart, pointEnd);
+                    infillLineList.add(line);
+                    if (Math.abs(pointEnd.getX() - pointStart.getX()) > 1) {
+                        pointOrder = 0;
+                    }
+                }
             }
         }
     }
