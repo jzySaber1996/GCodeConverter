@@ -29,10 +29,10 @@ public class GCodeGenerator {
     private static Double extruderWidth;
     private static Point previousPrintPoint;
     private static Double infillLineAngle;
-    private static Integer bottomLayers;
+    private static Integer bottomLayers, innerLayers, topLayers;
     private static Double lineGap;
     private static Double shellSpeed, externalShellSpeed;
-    private static Double solidInfillSpeed;
+    private static Double solidInfillSpeed, infillSpeed;
 
     public static void generator() {
         maxDim = 100.0;
@@ -42,6 +42,8 @@ public class GCodeGenerator {
         code = generateStart(code);
         code = generateBasic(code);
         code = generateBottom(code);
+        code = generateInner(code);
+//        code = generateTop(code);
         try {
             FileWriter fileWriter = new FileWriter(new File("File/Output.txt"));
             fileWriter.write(code);
@@ -187,6 +189,12 @@ public class GCodeGenerator {
             layerHeight = 0.0;
             fileLine = 0;
             properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
+            bedTemperature = Double.parseDouble(properties.getProperty("bedTemp"));
+            extruderTemperature = Double.parseDouble(properties.getProperty("extruderTemp"));
+            bottomLayers = Integer.parseInt(properties.getProperty("bottomLayers"));
+            shellSpeed = Double.parseDouble(properties.getProperty("shellSpeed")) * 60;
+            externalShellSpeed = Double.parseDouble(properties.getProperty("externalShellSpeed")) * 60;
+            solidInfillSpeed = Double.parseDouble(properties.getProperty("solidInfillSpeed")) * 60;
             String travelSpeed = properties.getProperty("travelSpeed");
             String firstHeight = properties.getProperty("firstHeight");
             travelSpeedValue = Double.parseDouble(travelSpeed) * 60;
@@ -200,8 +208,10 @@ public class GCodeGenerator {
                     + " F" + formatNumber(retractSpeed, 5) + "\n";
             gcode += "G92 E0\n";
             lengthUsed = -1 * retractLengthValue;
-            gcode = generateFirstBottom(gcode, Math.PI/4);
-            gcode = generateBottomOther(gcode);
+            gcode = generateFirstBottom(gcode, Math.PI / 4);
+            gcode += "M104 S" + formatNumber(extruderTemperature, 0) + "\n";
+            gcode += "M140 S" + formatNumber(bedTemperature, 0) + "\n";
+            gcode = generateBottomTop(gcode, bottomLayers);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -235,7 +245,7 @@ public class GCodeGenerator {
             for (int i = 0; i < shellLayers; i++) {
                 gcode = generateEachShell(pointList, gcode, i, firstLayerSpeed);
             }
-            gcode = generateSolidInfill(pointList, gcode, lineAngle, firstLayerSpeed);
+            gcode = generateSolidInfill(pointList, gcode, lineAngle, firstLayerSpeed, extruderWidth * scaling);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -343,7 +353,7 @@ public class GCodeGenerator {
     }
 
     private static String generateSolidInfill(ArrayList<Point> pointList, String code, Double lineAngle,
-                                              Double solidInfillSpeed) {
+                                              Double solidInfillSpeed, Double gapOfInfillLine) {
         infillLineList.clear();
         infillBoundPointList.clear();
         String gcode = code;
@@ -364,7 +374,7 @@ public class GCodeGenerator {
                 pointList.get(1), virtualLayer, extruderWidth);
         infillBoundPointList.add(printPoint);
         infillLineAngle = lineAngle;
-        constructInfillLines();
+        constructInfillLines(gapOfInfillLine);
         for (int i = 0; i < infillLineList.size(); i++) {
             if (infillLineList.get(i).getStartPoint().getX() <
                     infillLineList.get(i).getEndPoint().getX()) {
@@ -418,7 +428,7 @@ public class GCodeGenerator {
         return gcode;
     }
 
-    private static void constructInfillLines() {
+    private static void constructInfillLines(Double gapOfInfillLine) {
         Integer pointOrder = 0;
         Point pointStart = null, pointEnd = null;
         Double startM, endM;
@@ -429,7 +439,7 @@ public class GCodeGenerator {
             startM = 0.0;
             endM = maxDim - Math.tan(infillLineAngle) * maxDim;
         }
-        for (Double m = startM; m <= endM; m += extruderWidth * scaling) {
+        for (Double m = startM; m <= endM; m += gapOfInfillLine) {
             Double value1, value2;
             Double k = Math.tan(infillLineAngle);
             for (int i = 0; i < infillBoundPointList.size() - 1; i++) {
@@ -494,22 +504,47 @@ public class GCodeGenerator {
         return new Point(pointX, pointY);
     }
 
-    private static String generateBottomOther(String code) {
+    private static String generateBottomTop(String code, int layers) {
+        String gcode = code;
+        Double height;
+        for (int i = 1; i <= layers; i++) {
+            height = zPrintList.get(fileLine);
+            gcode += "G1 Z" + formatNumber(height, 3)
+                    + " F" + formatNumber(travelSpeedValue, 0) + "\n";
+            ArrayList<Point> pointList = pointPrintList.get(fileLine);
+            Point pointStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
+                    pointList.get(1), shellLayers, extruderWidth);
+            previousPrintPoint = pointStart;
+            gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
+                    + " Y" + formatNumber(pointStart.getY(), 3)
+                    + " F" + formatNumber(travelSpeedValue, 3)
+                    + "\n";
+            for (int j = 0; j < shellLayers - 1; j++) {
+                gcode = generateEachShell(pointList, gcode, j, shellSpeed);
+            }
+            gcode = generateEachShell(pointList, gcode, shellLayers - 1, externalShellSpeed);
+            if (i % 2 == 1)
+                gcode = generateSolidInfill(pointList, gcode, 3 * Math.PI / 4, solidInfillSpeed,
+                        extruderWidth * scaling);
+            else gcode = generateSolidInfill(pointList, gcode, Math.PI / 4, solidInfillSpeed,
+                    extruderWidth * scaling);
+            fileLine++;
+        }
+        return gcode;
+    }
+
+    private static String generateInner(String code) {
         String gcode = code;
         Properties properties = new Properties();
         try {
             properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
-            bedTemperature = Double.parseDouble(properties.getProperty("bedTemp"));
-            extruderTemperature = Double.parseDouble(properties.getProperty("extruderTemp"));
-            bottomLayers = Integer.parseInt(properties.getProperty("bottomLayers"));
-            shellSpeed = Double.parseDouble(properties.getProperty("shellSpeed")) * 60;
-            externalShellSpeed = Double.parseDouble(properties.getProperty("externalShellSpeed")) * 60;
-            solidInfillSpeed = Double.parseDouble(properties.getProperty("solidInfillSpeed")) * 60;
-
-            gcode += "M104 S" + formatNumber(extruderTemperature, 0) + "\n";
-            gcode += "M140 S" + formatNumber(bedTemperature, 0) + "\n";
+            topLayers = Integer.parseInt(properties.getProperty("topLayers"));
+            innerLayers = zPrintList.size() - topLayers - bottomLayers - 1;
+            infillSpeed = Double.parseDouble(properties.getProperty("infillSpeed")) * 60;
+            lineGap = Double.parseDouble(properties.getProperty("lineGap"));
+//            gcode += "M106 S211.65\n";
             Double height;
-            for (int i = 1; i <= bottomLayers; i++) {
+            for (int i = 1; i <= innerLayers; i++) {
                 height = zPrintList.get(fileLine);
                 gcode += "G1 Z" + formatNumber(height, 3)
                         + " F" + formatNumber(travelSpeedValue, 0) + "\n";
@@ -525,14 +560,20 @@ public class GCodeGenerator {
                     gcode = generateEachShell(pointList, gcode, j, shellSpeed);
                 }
                 gcode = generateEachShell(pointList, gcode, shellLayers - 1, externalShellSpeed);
-                if (i % 2 == 1)
-                    gcode = generateSolidInfill(pointList, gcode, 3 * Math.PI/4, solidInfillSpeed);
-                else gcode = generateSolidInfill(pointList, gcode, Math.PI/4, solidInfillSpeed);
+                gcode = generateSolidInfill(pointList, gcode, 0.0, infillSpeed,
+                        lineGap * scaling);
+                System.out.println("inner " + i + " finished.");
                 fileLine++;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return gcode;
+    }
+
+    private static String generateTop(String code){
+        String gcode = code;
+        generateBottomTop(gcode, topLayers - 1);
         return gcode;
     }
 }
