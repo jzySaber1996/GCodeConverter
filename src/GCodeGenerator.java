@@ -37,6 +37,7 @@ public class GCodeGenerator {
 
     public static void generator() {
         maxDim = 100.0;
+        storeStartEndGcode();
         reconstructFile();
         storeData();
         String code = "";
@@ -48,7 +49,7 @@ public class GCodeGenerator {
         code = generateLastTop(code);
         code = generateEnd(code);
         try {
-            FileWriter fileWriter = new FileWriter(new File("File/Output.txt"));
+            FileWriter fileWriter = new FileWriter(new File("File/Output.gcode"));
             fileWriter.write(code);
             fileWriter.flush();
             fileWriter.close();
@@ -62,6 +63,25 @@ public class GCodeGenerator {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+    }
+
+    private static void storeStartEndGcode() {
+        try {
+            FileWriter writerStart = new FileWriter(new File("File/startGcode.txt"));
+            FileWriter writerEnd = new FileWriter(new File("File/endGcode.txt"));
+            Properties properties = new Properties();
+            properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
+            String startGcode = properties.getProperty("startGcode");
+            String endGcode = properties.getProperty("endGcode");
+            writerStart.write(startGcode);
+            writerEnd.write(endGcode);
+            writerStart.flush();
+            writerEnd.flush();
+            writerStart.close();
+            writerEnd.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void reconstructFile() {
@@ -163,8 +183,17 @@ public class GCodeGenerator {
             String firstExtruderTemp = properties.getProperty("firstExtruderTemp");
             firstExtruderTemperature = Double.parseDouble(firstExtruderTemp);
             gcode += ("M104 S" + formatNumber(firstExtruderTemperature, 0) + "\n");
-            gcode += properties.getProperty("startGcode");
-            gcode += "\n";
+            FileInputStream fileStart = new FileInputStream("File/startGcode.txt");
+            BufferedReader readerStart = new BufferedReader(new InputStreamReader(fileStart));
+            String startGcode = "";
+            String line = readerStart.readLine();
+            while (line != null){
+                line = line.trim();
+                startGcode += (line + "\n");
+                line = readerStart.readLine();
+            }
+            gcode += startGcode;
+//            gcode += "\n";
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -638,7 +667,16 @@ public class GCodeGenerator {
         Properties properties = new Properties();
         try {
             properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
-            gcode += properties.getProperty("endGcode");
+            FileInputStream fileEnd = new FileInputStream("File/endGcode.txt");
+            BufferedReader readerEnd = new BufferedReader(new InputStreamReader(fileEnd));
+            String endGcode = "";
+            String line = readerEnd.readLine();
+            while (line != null){
+                line = line.trim();
+                endGcode += (line + "\n");
+                line = readerEnd.readLine();
+            }
+            gcode += endGcode;
         } catch (IOException e) {
             e.printStackTrace();
         }

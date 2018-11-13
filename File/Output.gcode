@@ -2,8 +2,8 @@ M107
 M190 S100
 M104 S205
 G28 ; home all axes
-        G1 Z5 F5000 ; lift nozzle
-    
+G1 Z5 F5000 ; lift nozzle
+
 M109 S205
 G21
 G90
@@ -82528,6 +82528,7 @@ G1 E16.14112 F2400.00000
 G92 E0
 M107
 M104 S0 ; turn off temperature
-        G28 X0  ; home X axis
-        M84     ; disable motors
-    M140 S0
+G28 X0  ; home X axis
+M84     ; disable motors
+
+M140 S0
