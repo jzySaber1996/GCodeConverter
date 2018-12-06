@@ -45,9 +45,10 @@
     <session id="1682859378">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="16" />
+          <entry key="project.closed" value="17" />
           <entry key="project.open.time.0" value="3" />
           <entry key="project.open.time.1" value="1" />
+          <entry key="project.open.time.28" value="1" />
           <entry key="project.open.time.29" value="4" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.30" value="2" />
@@ -57,7 +58,7 @@
           <entry key="project.open.time.39" value="1" />
           <entry key="project.open.time.50" value="1" />
           <entry key="project.open.time.7" value="1" />
-          <entry key="project.opened" value="18" />
+          <entry key="project.opened" value="19" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
@@ -157,7 +158,7 @@
         <entry file="file://$PROJECT_DIR$/File/Output.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="124">
-              <caret line="59671" column="30" lean-forward="true" selection-start-line="59671" selection-start-column="30" selection-end-line="59671" selection-end-column="30" />
+              <caret line="59683" column="30" lean-forward="true" selection-start-line="59683" selection-start-column="30" selection-end-line="59683" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -248,17 +249,17 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-9" />
-    <option name="y" value="-9" />
+    <option name="x" value="-10" />
+    <option name="y" value="-10" />
     <option name="width" value="975" />
-    <option name="height" value="1058" />
+    <option name="height" value="1059" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="AndroidView" />
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -289,8 +290,8 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="PackagesPane" />
+      <pane id="AndroidView" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -382,16 +383,17 @@
       <workItem from="1541837954073" duration="8707000" />
       <workItem from="1541917637839" duration="14578000" />
       <workItem from="1542007414787" duration="2431000" />
+      <workItem from="1542883272374" duration="56000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="195875000" />
+    <option name="totallyTimeSpent" value="195931000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="944" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25201073" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25536194" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Designer" order="3" />
@@ -605,7 +607,7 @@
     <entry file="file://$PROJECT_DIR$/File/Output.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="124">
-          <caret line="59671" column="30" lean-forward="true" selection-start-line="59671" selection-start-column="30" selection-end-line="59671" selection-end-column="30" />
+          <caret line="59683" column="30" lean-forward="true" selection-start-line="59683" selection-start-column="30" selection-end-line="59683" selection-end-column="30" />
         </state>
       </provider>
     </entry>
