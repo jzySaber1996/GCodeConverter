@@ -16,7 +16,7 @@ public class GCodeGenerator {
     private static ArrayList<Double> zPrintList = new ArrayList<>();
     private static ArrayList<ArrayList<Point>> pointPrintList = new ArrayList<>();
     private static ArrayList<Point> infillBoundPointList = new ArrayList<>();
-//    private static ArrayList<Line> infillLineList = new ArrayList<>();
+    //    private static ArrayList<Line> infillLineList = new ArrayList<>();
     private static ArrayList<Point> pointTempList = new ArrayList<>();
     private static ArrayList<ArrayList<Point>> shellList = new ArrayList<>();
     private static ArrayList<ArrayList<Point>> infillLineNewList = new ArrayList<>();
@@ -261,6 +261,8 @@ public class GCodeGenerator {
         ArrayList<Point> pointList = pointPrintList.get(fileLine);
         Properties properties = new Properties();
         try {
+            shellList.clear();
+            pointTempList.clear();
             properties.loadFromXML(new FileInputStream("File/printParameters.xml"));
             filamentDiameter = Double.parseDouble(properties.getProperty("filamentDiameter"));
 //            calculateAverage(pointList);
@@ -268,16 +270,15 @@ public class GCodeGenerator {
             extruderWidth = Double.parseDouble(properties.getProperty("extruderWidth"));
 
             firstLayerSpeed = Double.parseDouble(properties.getProperty("firstLayerSpeed")) * 60;
-
 //            lengthUsed = retractLengthValue;
-            pointTempList = pointList;
+            pointTempList = removeDeletePoints(pointList);
             calculateAverage(pointTempList);
             shellList.add(pointTempList);
             for (int i = 0; i < shellLayers - 1; i++) {
                 generateEachShell();
             }
             isRetract = true;
-            gcode = generateEachShellCode(gcode, 0, firstLayerSpeed);
+            gcode = generateEachShellCode(gcode, 0, firstLayerSpeed, firstLayerSpeed);
 
             gcode = generateSolidInfill(pointList, gcode, lineAngle, firstLayerSpeed, extruderWidth * scaling, false);
         } catch (IOException e) {
@@ -291,25 +292,27 @@ public class GCodeGenerator {
         String gcode = code;
         Double height;
         for (int i = 1; i <= layers; i++) {
+            shellList.clear();
+            pointTempList.clear();
             height = zPrintList.get(fileLine);
             gcode += "G1 Z" + formatNumber(height, 3)
                     + " F" + formatNumber(travelSpeedValue, 0) + "\n";
             ArrayList<Point> pointList = pointPrintList.get(fileLine);
-            calculateAverage(pointList);
-            Point pointStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
-                    pointList.get(1), shellLayers, extruderWidth);
-            previousPrintPoint = pointStart;
-            gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
-                    + " Y" + formatNumber(pointStart.getY(), 3)
-                    + " F" + formatNumber(travelSpeedValue, 3)
-                    + "\n";
-
-            pointTempList = pointList;
+//            Point pointStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
+//                    pointList.get(1), shellLayers, extruderWidth);
+//            previousPrintPoint = pointStart;
+//            gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
+//                    + " Y" + formatNumber(pointStart.getY(), 3)
+//                    + " F" + formatNumber(travelSpeedValue, 3)
+//                    + "\n";
+            pointTempList = removeDeletePoints(pointList);
+            calculateAverage(pointTempList);
+            shellList.add(pointTempList);
             for (int j = 0; j < shellLayers - 1; j++) {
                 generateEachShell();
             }
-            generateEachShell();
-
+//            generateEachShell();
+            gcode = generateEachShellCode(gcode, 0, shellSpeed, externalShellSpeed);
 
             if (i % 2 == 1)
                 gcode = generateSolidInfill(pointList, gcode, 3 * Math.PI / 4, solidInfillSpeed,
@@ -333,25 +336,19 @@ public class GCodeGenerator {
 //            gcode += "M106 S211.65\n";
             Double height;
             for (int i = 1; i <= innerLayers; i++) {
+                shellList.clear();
+                pointTempList.clear();
                 height = zPrintList.get(fileLine);
                 gcode += "G1 Z" + formatNumber(height, 3)
                         + " F" + formatNumber(travelSpeedValue, 0) + "\n";
                 ArrayList<Point> pointList = pointPrintList.get(fileLine);
-                calculateAverage(pointList);
-                Point pointStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
-                        pointList.get(1), shellLayers, extruderWidth);
-                previousPrintPoint = pointStart;
-                gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
-                        + " Y" + formatNumber(pointStart.getY(), 3)
-                        + " F" + formatNumber(travelSpeedValue, 3)
-                        + "\n";
-
-
+                pointTempList = removeDeletePoints(pointList);
+                calculateAverage(pointTempList);
+                shellList.add(pointTempList);
                 for (int j = 0; j < shellLayers - 1; j++) {
                     generateEachShell();
                 }
-                generateEachShell();
-
+                gcode = generateEachShellCode(gcode, 0, shellSpeed, externalShellSpeed);
 
                 gcode = generateSolidInfill(pointList, gcode, 0.0, infillSpeed,
                         lineGap * scaling, false);
@@ -371,6 +368,8 @@ public class GCodeGenerator {
     }
 
     private static String generateLastTop(String code) {
+        shellList.clear();
+        pointTempList.clear();
         String gcode = code;
         Double height = zPrintList.get(fileLine);
         gcode += "G1 Z" + formatNumber(height, 3)
@@ -382,26 +381,26 @@ public class GCodeGenerator {
                 + "\n";
         gcode += "G92 E0\n";
         ArrayList<Point> pointList = pointPrintList.get(fileLine);
-        calculateAverage(pointList);
-        Point pointStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
-                pointList.get(1), shellLayers, extruderWidth);
-        previousPrintPoint = pointStart;
-        gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
-                + " Y" + formatNumber(pointStart.getY(), 3)
-                + " F" + formatNumber(travelSpeedValue, 3)
-                + "\n";
-        lengthUsed = retractLengthValue;
-        gcode += "G1 E" + formatNumber(lengthUsed, 5)
-                + " F" + formatNumber(retractSpeed, 5)
-                + "\n";
-
-
+//        calculateAverage(pointList);
+//        Point pointStart = layerAlgorithm(pointList.get(pointList.size() - 1), pointList.get(0),
+//                pointList.get(1), shellLayers, extruderWidth);
+//        previousPrintPoint = pointStart;
+//        gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
+//                + " Y" + formatNumber(pointStart.getY(), 3)
+//                + " F" + formatNumber(travelSpeedValue, 3)
+//                + "\n";
+//        lengthUsed = retractLengthValue;
+//        gcode += "G1 E" + formatNumber(lengthUsed, 5)
+//                + " F" + formatNumber(retractSpeed, 5)
+//                + "\n";
+        pointTempList = removeDeletePoints(pointList);
+        calculateAverage(pointTempList);
+        shellList.add(pointTempList);
         for (int j = 0; j < shellLayers - 1; j++) {
             generateEachShell();
         }
-        generateEachShell();
-
-
+        isRetract = true;
+        gcode = generateEachShellCode(gcode, 0, shellSpeed, externalShellSpeed);
         lastTopSpeed = 40.0 * 60;
         lengthUsed -= retractLengthValue;
         gcode += "G1 E" + formatNumber(lengthUsed, 5)
@@ -441,6 +440,27 @@ public class GCodeGenerator {
         return gcode;
     }
 
+    private static ArrayList<Point> removeDeletePoints(ArrayList<Point> pointDeleteList) {
+        ArrayList<Point> pointResultList = new ArrayList<>();
+        Boolean testDelete = false;
+        for (int i = 0; i < pointDeleteList.size(); i++) {
+            if (pointDeleteList.get(i).getY() > 63) {
+                int temp = 0;
+            }
+            for (int j = 0; j < i; j++) {
+                if (calculatePointDistance(pointDeleteList.get(i), pointDeleteList.get(j)) < extruderWidth / 3) {
+                    testDelete = true;
+                    break;
+                }
+            }
+            if (!testDelete) {
+                pointResultList.add(pointDeleteList.get(i));
+            }
+            testDelete = false;
+        }
+        return pointResultList;
+    }
+
     private static void generateEachShell() {
 //        pointTempList.clear();
         calculateAverage(pointTempList);
@@ -454,17 +474,18 @@ public class GCodeGenerator {
             } else {
                 printPoint = layerAlgorithm(pointTempList.get(i - 1), pointTempList.get(i),
                         pointTempList.get(i + 1), 2, extruderWidth);
+
             }
 //            if (printPoint.getY() < 0) {
 //                int temp = 0;
 //            }
             for (int j = 0; j < pointStoreList.size(); j++) {
-                if (calculatePointDistance(printPoint, pointStoreList.get(j)) <= extruderWidth / 10) {
+                if (calculatePointDistance(printPoint, pointStoreList.get(j)) <= extruderWidth / 3) {
                     testDelete = true;
                     break;
                 }
             }
-            if (!testDelete){
+            if (!testDelete) {
                 pointStoreList.add(printPoint);
             }
             testDelete = false;
@@ -472,7 +493,7 @@ public class GCodeGenerator {
         printPoint = layerAlgorithm(pointTempList.get(pointTempList.size() - 1), pointTempList.get(0),
                 pointTempList.get(1), 2, extruderWidth);
         for (int j = 0; j < pointStoreList.size(); j++) {
-            if (calculatePointDistance(printPoint, pointStoreList.get(j)) <= extruderWidth / 10) {
+            if (calculatePointDistance(printPoint, pointStoreList.get(j)) <= extruderWidth / 3) {
                 testDelete = true;
                 break;
             }
@@ -480,13 +501,13 @@ public class GCodeGenerator {
         if (!testDelete) {
             pointStoreList.add(printPoint);
         }
-        testDelete = false;
+//        testDelete = false;
         pointTempList = pointStoreList;
         shellList.add(pointTempList);
     }
 
     private static String generateEachShellCode(String code, Integer index,
-                                                Double shellSpeed) {
+                                                Double shellSpeed, Double shellOutSpeed) {
         String gcode = code;
         Point pointStart;
         pointStart = shellList.get(shellList.size() - 1).get(0);
@@ -507,7 +528,7 @@ public class GCodeGenerator {
         Double extrusion;
         for (int i = shellList.size() - 1; i >= 0; i--) {
             ArrayList<Point> pointStoreList = shellList.get(i);
-            if (i != shellList.size() - 1){
+            if (i != shellList.size() - 1) {
                 pointStart = pointStoreList.get(0);
                 gcode += "G1 X" + formatNumber(pointStart.getX(), 3)
                         + " Y" + formatNumber(pointStart.getY(), 3)
@@ -515,7 +536,8 @@ public class GCodeGenerator {
                         + "\n";
                 previousPrintPoint = pointStart;
             }
-            gcode += "G1 F" + formatNumber(shellSpeed, 0) + "\n";
+            if (i > 0) gcode += "G1 F" + formatNumber(shellSpeed, 0) + "\n";
+            else gcode += "G1 F" + formatNumber(shellOutSpeed, 0) + "\n";
             for (int j = 1; j < pointStoreList.size(); j++) {
                 printPoint = pointStoreList.get(j);
                 extrusion = extrusionData(previousPrintPoint, printPoint);
@@ -604,8 +626,7 @@ public class GCodeGenerator {
                                 + " E" + formatNumber(lengthUsed, 5)
                                 + "\n";
                         previousPrintPoint = pointNext;
-                    }
-                    else {
+                    } else {
                         lengthUsed -= retractLengthValue;
                         gcode += "G1 E" + formatNumber(lengthUsed, 5)
                                 + " F" + formatNumber(retractSpeed, 5)
@@ -683,7 +704,9 @@ public class GCodeGenerator {
             @Override
             public int compare(Point o1, Point o2) {
                 if (o1.getY() < o2.getY()) return 1;
-                else return -1;
+                else if ((o1.getY() - o2.getY()) < 1e-6 && o1.getX() < o2.getX()) {
+                    return 1;
+                } else return -1;
             }
         });
         return infillPointStoreList;
@@ -724,7 +747,7 @@ public class GCodeGenerator {
             C_2 = b_2 - (layer - 1) * d * Math.sqrt(Math.pow(w2_1, 2) + Math.pow(w2_2, 2));
         }
         Double pointX, pointY;
-        if (w2_2 * w1_1 - w2_1 * w1_2 > 1e-6) {
+        if (Math.abs(w2_2 * w1_1 - w2_1 * w1_2) > 1e-6) {
             pointX = (w1_2 * C_2 - w2_2 * C_1) / (w2_2 * w1_1 - w2_1 * w1_2);
             pointY = (w1_1 * C_2 - w2_1 * C_1) / (w1_2 * w2_1 - w2_2 * w1_1);
         } else {
