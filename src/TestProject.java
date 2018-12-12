@@ -16,8 +16,10 @@ public class TestProject {
         avgX = 10.0;
         avgY = 10.0;
 
-        Point pointResult = layerAlgorithm(new Point(1.0, 0.0), new Point(0.0, 2.0), new Point(-1.0, 4.0),
-                2, Math.sqrt(5));
+        String strResult = String.valueOf(-0.0000000001);
+        System.out.println(strResult.charAt(0));
+//        Point pointResult = layerAlgorithm(new Point(1.0, 0.0), new Point(0.0, 2.0), new Point(-1.0, 4.0),
+//                2, Math.sqrt(5));
 //        ArrayList<Integer> testInt = new ArrayList<>();
 //        testInt.add(1);
 //        testInt.add(2);
@@ -25,7 +27,7 @@ public class TestProject {
 //        System.out.println(testInt.get(testInt.size()-1));
     }
 
-    private static void reconstructFile() {
+//    private static void reconstructFile() {
 //        try {
 //            FileInputStream zFile = new FileInputStream("File/zListFile.txt");
 //            BufferedReader readerZ = new BufferedReader(new InputStreamReader(zFile));
@@ -66,8 +68,8 @@ public class TestProject {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
-    }
-    private static void storeData(){
+//    }
+//    private static void storeData(){
 //        try {
 //            FileInputStream fileX = new FileInputStream("File/xListFile.txt");
 //            FileInputStream fileY = new FileInputStream("File/yListFile.txt");
@@ -102,10 +104,10 @@ public class TestProject {
 //            e.printStackTrace();
 //        }
 //        int a = 0;
-    }
+//    }
 
-    private static Point layerAlgorithm(Point pointPrevious, Point point, Point pointLatter,
-                                        Integer layer, Double d) {
+//    private static Point layerAlgorithm(Point pointPrevious, Point point, Point pointLatter,
+//                                        Integer layer, Double d) {
 //        Double w1_1 = pointLatter.getY() - point.getY();
 //        Double w1_2 = point.getX() - pointLatter.getX();
 //        Double w2_1 = point.getY() - pointPrevious.getY();
@@ -135,6 +137,6 @@ public class TestProject {
 //            pointX = (w1_2 * C_3 - w3_2 * C_1) / (w3_2 * w1_1 - w3_1 * w1_2);
 //            pointY = (w1_1 * C_3 - w3_1 * C_1) / (w1_2 * w3_1 - w3_2 * w1_1);
 //        }
-        return new Point(pointX, pointY);
-    }
+//        return new Point(pointX, pointY);
+//    }
 }

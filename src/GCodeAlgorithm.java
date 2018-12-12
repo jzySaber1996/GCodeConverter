@@ -220,6 +220,7 @@ public class GCodeAlgorithm {
         Integer pointOrder = 0;
         Point pointStart = null, pointEnd = null, pointLineStore = null;
         Double startM, endM;
+        String strResult = null;
         if (GCodeParameters.infillLineAngle < Math.PI / 2) {
             startM = -1 * Math.tan(GCodeParameters.infillLineAngle) * GCodeParameters.maxDim;
             endM = GCodeParameters.maxDim;
@@ -237,7 +238,8 @@ public class GCodeAlgorithm {
                         - GCodeParameters.infillBoundPointList.get(i).getY() + m;
                 value2 = k * GCodeParameters.infillBoundPointList.get(i + 1).getX()
                         - GCodeParameters.infillBoundPointList.get(i + 1).getY() + m;
-                if (value1 * value2 < 0) {
+                strResult = String.valueOf(value1 * value2);
+                if (strResult.charAt(0) == '-') {
                     pointLineStore = calculateCrossPoint(k, m, GCodeParameters.infillBoundPointList.get(i), GCodeParameters.infillBoundPointList.get(i + 1));
                     infillPointStoreList.add(pointLineStore);
                     pointOrder++;
@@ -247,7 +249,8 @@ public class GCodeAlgorithm {
                     - GCodeParameters.infillBoundPointList.get(GCodeParameters.infillBoundPointList.size() - 1).getY() + m;
             value2 = k * GCodeParameters.infillBoundPointList.get(0).getX()
                     - GCodeParameters.infillBoundPointList.get(0).getY() + m;
-            if (value1 * value2 < 0) {
+            strResult = String.valueOf(value1 * value2);
+            if (strResult.charAt(0) == '-') {
                 pointLineStore = calculateCrossPoint(k, m,
                         GCodeParameters.infillBoundPointList.get(GCodeParameters.infillBoundPointList.size() - 1),
                         GCodeParameters.infillBoundPointList.get(0));
@@ -257,8 +260,8 @@ public class GCodeAlgorithm {
             if (pointOrder % 2 == 0 && pointOrder != 0) {
                 infillPointStoreList = sortInfillLineByValue(infillPointStoreList);
                 GCodeParameters.infillLineNewList.add(infillPointStoreList);
-                pointOrder = 0;
             }
+            pointOrder = 0;
         }
     }
 
@@ -266,7 +269,7 @@ public class GCodeAlgorithm {
         infillPointStoreList.sort(new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
-                if (o1.getY() < o2.getY()) return 1;
+                if ((o1.getY() - o2.getY()) < -1e-6) return 1;
                 else if ((o1.getY() - o2.getY()) < 1e-6 && o1.getX() < o2.getX()) {
                     return 1;
                 } else return -1;
