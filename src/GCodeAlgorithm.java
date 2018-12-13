@@ -216,7 +216,7 @@ public class GCodeAlgorithm {
         return gcode;
     }
 
-    static void constructInfillLines(Double gapOfInfillLine) {
+    private static void constructInfillLines(Double gapOfInfillLine) {
         Integer pointOrder = 0;
         Point pointStart = null, pointEnd = null, pointLineStore = null;
         Double startM, endM;
@@ -265,7 +265,7 @@ public class GCodeAlgorithm {
         }
     }
 
-    static ArrayList<Point> sortInfillLineByValue(ArrayList<Point> infillPointStoreList) {
+    private static ArrayList<Point> sortInfillLineByValue(ArrayList<Point> infillPointStoreList) {
         infillPointStoreList.sort(new Comparator<Point>() {
             @Override
             public int compare(Point o1, Point o2) {
@@ -278,7 +278,7 @@ public class GCodeAlgorithm {
         return infillPointStoreList;
     }
 
-    static Point calculateCrossPoint(Double k, Double m, Point point1, Point point2) {
+    private static Point calculateCrossPoint(Double k, Double m, Point point1, Point point2) {
         Double w1_2 = -1.0;
         Double w2_1 = point2.getY() - point1.getY();
         Double w2_2 = point1.getX() - point2.getX();
@@ -293,7 +293,7 @@ public class GCodeAlgorithm {
     }
 
     //REMAIN Modification!
-    static Point layerAlgorithm(Point pointPrevious, Point point, Point pointLatter,
+    private static Point layerAlgorithm(Point pointPrevious, Point point, Point pointLatter,
                                         Integer layer, Double d) {
         Double w1_1 = pointLatter.getY() - point.getY();
         Double w1_2 = point.getX() - pointLatter.getX();
@@ -342,7 +342,7 @@ public class GCodeAlgorithm {
         return numberResult;
     }
 
-    static Double extrusionData(Point previous, Point point) {
+    private static Double extrusionData(Point previous, Point point) {
         Double length = Math.sqrt(Math.pow(point.getX() - previous.getX(), 2) +
                 Math.pow(point.getY() - previous.getY(), 2));
         Double volume = length * GCodeParameters.extruderWidth * GCodeParameters.layerHeight;
